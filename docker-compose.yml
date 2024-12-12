@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: letrack
+      POSTGRES_USER: letrack
+      POSTGRES_PASSWORD: letrack
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto:latest
+    ports:
+      - 1883:1883
+    volumes:
+      - ./conf/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto:/mosquitto/data
+    restart: unless-stopped
+
+volumes:
+  pg-data:
+  mosquitto:

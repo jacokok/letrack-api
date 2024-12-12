@@ -1,0 +1,7 @@
+.vs
+bin/
+obj/
+Logs/
+/scripts/*.sql
+private_key.json
+.idea/
