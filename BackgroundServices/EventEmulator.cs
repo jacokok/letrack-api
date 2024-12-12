@@ -18,11 +18,11 @@ public class EventEmulator : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            await Task.Delay(5000, stoppingToken);
+
             EventModel eventModel = new() { Timestamp = DateTime.Now, TrackId = 1, Id = Guid.NewGuid() };
             string payload = JsonSerializer.Serialize(eventModel);
             _mqttService.Publish("event", payload);
-            // _mqttService.Publish("another", payload);
-            await Task.Delay(5000, stoppingToken);
         }
     }
 }
