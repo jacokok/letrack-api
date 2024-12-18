@@ -1,6 +1,6 @@
-namespace LeTrack.Models;
+namespace LeTrack.Features.Events;
 
-public class EventModel
+public class LapEvent : IEvent
 {
     public Guid Id { get; set; }
     public int TrackId { get; set; }

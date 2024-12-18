@@ -1,6 +1,6 @@
 
 using System.Text.Json;
-using LeTrack.Models;
+using LeTrack.Features.Events;
 using LeTrack.Services;
 
 namespace LeTrack.BackgroundServices;
@@ -20,7 +20,7 @@ public class EventEmulator : BackgroundService
         {
             await Task.Delay(5000, stoppingToken);
 
-            EventModel eventModel = new() { Timestamp = DateTime.Now, TrackId = 1, Id = Guid.NewGuid() };
+            SaveEvent eventModel = new() { Timestamp = DateTime.Now.ToUniversalTime(), TrackId = 1, Id = Guid.NewGuid() };
             string payload = JsonSerializer.Serialize(eventModel);
             _mqttService.Publish("event", payload);
         }

@@ -2,7 +2,6 @@ using System.Text.Json;
 using LeTrack.Data;
 using LeTrack.Entities;
 using LeTrack.Features.Events;
-using LeTrack.Models;
 using LeTrack.Services;
 using MQTTnet;
 using MQTTnet.Client;
@@ -37,7 +36,7 @@ public class EventSubscriber : BackgroundService
         using var scope = _serviceScopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var eventModel = JsonSerializer.Deserialize<EventModel>(e.ApplicationMessage.ConvertPayloadToString());
+        var eventModel = JsonSerializer.Deserialize<SaveEvent>(e.ApplicationMessage.ConvertPayloadToString());
         _logger.LogInformation("Id: {id}, Track: {track}, Timestamp: {ts}", eventModel?.Id, eventModel?.TrackId, eventModel?.Timestamp);
 
         if (eventModel == null)
@@ -68,6 +67,8 @@ public class EventSubscriber : BackgroundService
             TrackId = eventModel.TrackId,
             Timestamp = eventModel.Timestamp
         }.PublishAsync(Mode.WaitForNone);
+
+
 
         // This should check if event exists. If not save to event table.
         // This should then trigger multiple fire and forget jobs.

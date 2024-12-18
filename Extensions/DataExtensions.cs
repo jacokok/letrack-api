@@ -9,6 +9,7 @@ public static class DataExtensions
     {
         services.AddDbContext<AppDbContext>(options =>
         {
+            options.UseSnakeCaseNamingConvention();
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)

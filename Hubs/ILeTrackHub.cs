@@ -1,9 +1,10 @@
-using LeTrack.Models;
+using LeTrack.Features.Events;
 
 namespace LeTrack.Hubs;
 
 public interface ILeTrackHub
 {
     Task ReceiveMessage(string message);
-    Task ReceiveEvent(EventModel evt);
+    Task ReceiveEvent(SaveEvent evt);
+    Task DoneEvent(DoneEvent evt);
 }

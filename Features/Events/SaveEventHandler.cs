@@ -1,17 +1,34 @@
+using LeTrack.Hubs;
+using Microsoft.AspNetCore.SignalR;
+
 namespace LeTrack.Features.Events;
 
 public class SaveEventHandler : IEventHandler<SaveEvent>
 {
-    private readonly ILogger _logger;
+    private readonly IHubContext<LeTrackHub, ILeTrackHub> _hub;
 
-    public SaveEventHandler(ILogger<SaveEventHandler> logger)
+    public SaveEventHandler(IHubContext<LeTrackHub, ILeTrackHub> hub)
     {
-        _logger = logger;
+        _hub = hub;
     }
 
-    public Task HandleAsync(SaveEvent eventModel, CancellationToken ct)
+    public async Task HandleAsync(SaveEvent eventModel, CancellationToken ct)
     {
-        _logger.LogInformation($"order created event received:[{eventModel.Id}]");
-        return Task.CompletedTask;
+        await _hub.Clients.All.ReceiveEvent(eventModel);
+
+        await new LapEvent
+        {
+            Id = eventModel.Id,
+            TrackId = eventModel.TrackId,
+            Timestamp = eventModel.Timestamp
+        }.PublishAsync();
+
+        await new DoneEvent
+        {
+            Id = eventModel.Id,
+            TrackId = eventModel.TrackId
+        }.PublishAsync();
+
+        return;
     }
 }
