@@ -1,7 +1,6 @@
 using System.Reflection;
 using LeTrack.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LeTrack.Data;
 
@@ -14,6 +13,10 @@ public class AppDbContext : DbContext
 
     public DbSet<Event> Event => Set<Event>();
     public DbSet<Lap> Lap => Set<Lap>();
+    public DbSet<Entities.Config> Config => Set<Entities.Config>();
+    public DbSet<Player> Player => Set<Player>();
+    public DbSet<Race> Race => Set<Race>();
+    public DbSet<RaceTrack> RaceTrack => Set<RaceTrack>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

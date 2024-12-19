@@ -8,4 +8,5 @@ public class Lap
     public DateTime Timestamp { get; set; }
     public TimeSpan? LapTime { get; set; }
     public bool IsFlagged { get; set; }
+    public int RaceId { get; set; }
 }

@@ -3,6 +3,7 @@ using System;
 using LeTrack.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LeTrack.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241219054923_Rename")]
+    partial class Rename
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,66 +139,39 @@ namespace LeTrack.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("EnabledTrack1")
                         .HasColumnType("boolean")
-                        .HasColumnName("is_active");
+                        .HasColumnName("enabled_track1");
+
+                    b.Property<bool>("EnabledTrack2")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled_track2");
+
+                    b.Property<DateTime>("EndDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date_time");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
 
+                    b.Property<int>("PlayerTrack1")
+                        .HasColumnType("integer")
+                        .HasColumnName("player_track1");
+
+                    b.Property<int>("PlayerTrack2")
+                        .HasColumnType("integer")
+                        .HasColumnName("player_track2");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date_time");
+
                     b.HasKey("Id")
                         .HasName("pk_race");
 
                     b.ToTable("race", (string)null);
-                });
-
-            modelBuilder.Entity("LeTrack.Entities.RaceTrack", b =>
-                {
-                    b.Property<int>("RaceId")
-                        .HasColumnType("integer")
-                        .HasColumnName("race_id");
-
-                    b.Property<int>("TrackId")
-                        .HasColumnType("integer")
-                        .HasColumnName("track_id");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("integer")
-                        .HasColumnName("player_id");
-
-                    b.HasKey("RaceId", "TrackId")
-                        .HasName("pk_race_track");
-
-                    b.HasIndex("PlayerId")
-                        .HasDatabaseName("ix_race_track_player_id");
-
-                    b.ToTable("race_track", (string)null);
-                });
-
-            modelBuilder.Entity("LeTrack.Entities.RaceTrack", b =>
-                {
-                    b.HasOne("LeTrack.Entities.Player", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_race_track_player_player_id");
-
-                    b.HasOne("LeTrack.Entities.Race", null)
-                        .WithMany("RaceTracks")
-                        .HasForeignKey("RaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_race_track_race_race_id");
-
-                    b.Navigation("Player");
-                });
-
-            modelBuilder.Entity("LeTrack.Entities.Race", b =>
-                {
-                    b.Navigation("RaceTracks");
                 });
 #pragma warning restore 612, 618
         }

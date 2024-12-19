@@ -22,25 +22,30 @@ public class LapEventHandler : IEventHandler<LapEvent>
         {
             throw new Exception("Dependency injection failed");
         }
-        // TODO: Save lap times.
-        // Find last lap event
+
         var lastEvent = await _dbContext.Event
             .Where(x => x.TrackId == eventModel.TrackId && x.Timestamp < eventModel.Timestamp)
             .OrderByDescending(x => x.Timestamp)
             .FirstOrDefaultAsync(ct);
 
+        var race = await _dbContext.Race
+            .Include(x => x.RaceTracks)
+                .ThenInclude(x => x.Player)
+            .FirstOrDefaultAsync(x => x.IsActive && x.RaceTracks.Any(x => x.TrackId == eventModel.TrackId), ct);
+
         TimeSpan? lapTimeSpan = (lastEvent != null) ? eventModel.Timestamp - lastEvent.Timestamp : null;
 
-        // TODO: Check is Flagged
-        // Save lap
+        // TODO: Flag lap if something is fishy
+
         var lap = new Lap
         {
             Id = eventModel.Id,
             TrackId = eventModel.TrackId,
             Timestamp = eventModel.Timestamp,
-            LastLapId = lastEvent.Id,
+            LastLapId = lastEvent?.Id,
             LapTime = lapTimeSpan,
-            IsFlagged = lapTimeSpan == null
+            IsFlagged = lapTimeSpan == null,
+            RaceId = race?.Id ?? 0
         };
         await _dbContext.Lap.AddAsync(lap);
         await _dbContext.SaveChangesAsync(ct);
