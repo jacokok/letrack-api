@@ -1,6 +1,6 @@
 namespace LeTrack.Entities;
 
-public class Lap
+public class LapDTO
 {
     public Guid Id { get; set; }
     public Guid? LastLapId { get; set; }
@@ -10,4 +10,5 @@ public class Lap
     public TimeSpan? LapTimeDifference { get; set; }
     public bool IsFlagged { get; set; }
     public int RaceId { get; set; }
+    public int LapNumber { get; set; }
 }

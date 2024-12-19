@@ -2,7 +2,7 @@ using LeTrack.Data;
 using LeTrack.DTO;
 using Microsoft.EntityFrameworkCore;
 
-namespace LeTrack.Features.Track.Summary;
+namespace LeTrack.Features.Race.Summary;
 
 public class Endpoint : Endpoint<Request, Response>
 {
@@ -15,7 +15,7 @@ public class Endpoint : Endpoint<Request, Response>
 
     public override void Configure()
     {
-        Get("/track/summary/{trackId}");
+        Get("/race/summary/{raceId}");
         AllowAnonymous();
     }
     public override async Task HandleAsync(Request r, CancellationToken ct)
@@ -25,22 +25,19 @@ public class Endpoint : Endpoint<Request, Response>
         var race = await _dbContext.Race
             .Include(x => x.RaceTracks)
                 .ThenInclude(x => x.Player)
-            .FirstOrDefaultAsync(x => x.IsActive && x.RaceTracks.Any(x => x.TrackId == r.TrackId), ct);
+            .FirstOrDefaultAsync(x => x.Id == r.RaceId, ct);
 
-        List<Entities.LapDTO>? laps = null;
         if (race == null)
         {
-            laps = await _dbContext.Lap.Where(x => x.TrackId == r.TrackId).OrderByDescending(x => x.Timestamp).Take(10).ProjectToDto().ToListAsync(ct);
+            throw new Exception("Race not found");
         }
-        else
-        {
-            laps = await _dbContext.Lap.Where(x => x.TrackId == r.TrackId && x.RaceId == race.Id).OrderByDescending(x => x.Timestamp).ProjectToDto().ToListAsync(ct);
-        }
+
+        List<Entities.LapDTO>? laps = await _dbContext.Lap.Where(x => x.RaceId == r.RaceId).OrderByDescending(x => x.Timestamp).ProjectToDto().ToListAsync(ct);
 
         // Add Lap Number
         laps = laps.Select((x, index) => { x.LapNumber = laps.Count - index; return x; }).ToList();
-        response.TotalLaps = (race == null) ? 0 : laps.Count;
-        response.Last10Laps = laps.OrderByDescending(x => x.Timestamp).Take(10).ToList();
+        response.Laps = laps;
+        response.TotalLaps = laps.Count;
         response.FastestLap = laps.Where(x => !x.IsFlagged).OrderBy(x => x.LapTime).FirstOrDefault();
         response.Race = race;
 

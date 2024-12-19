@@ -13,6 +13,7 @@ builder.Services.AddHostedService<EventSubscriber>();
 builder.Services.AddHostedService<EventEmulator>();
 
 builder.Services.ConfigureGeneral();
+builder.Services.ConfigureJobs();
 builder.Services.ConfigureEF(builder.Configuration, builder.Environment);
 builder.Services.ConfigureApi();
 

@@ -28,12 +28,19 @@ public class LapEventHandler : IEventHandler<LapEvent>
             .OrderByDescending(x => x.Timestamp)
             .FirstOrDefaultAsync(ct);
 
-        var race = await _dbContext.Race
-            .Include(x => x.RaceTracks)
-                .ThenInclude(x => x.Player)
-            .FirstOrDefaultAsync(x => x.IsActive && x.RaceTracks.Any(x => x.TrackId == eventModel.TrackId), ct);
+        var race = await _dbContext.Race.FirstOrDefaultAsync(x => x.IsActive && x.RaceTracks.Any(x => x.TrackId == eventModel.TrackId), ct);
 
         TimeSpan? lapTimeSpan = (lastEvent != null) ? eventModel.Timestamp - lastEvent.Timestamp : null;
+        TimeSpan? lapDifference = null;
+
+        if (lastEvent != null)
+        {
+            var lastLap = await _dbContext.Lap.FirstOrDefaultAsync(x => x.Id == lastEvent.Id);
+            if (lastLap != null)
+            {
+                lapDifference = lastLap.LapTime - lapTimeSpan;
+            }
+        }
 
         // TODO: Flag lap if something is fishy
 
@@ -44,6 +51,7 @@ public class LapEventHandler : IEventHandler<LapEvent>
             Timestamp = eventModel.Timestamp,
             LastLapId = lastEvent?.Id,
             LapTime = lapTimeSpan,
+            LapTimeDifference = lapDifference,
             IsFlagged = lapTimeSpan == null,
             RaceId = race?.Id ?? 0
         };
