@@ -27,7 +27,7 @@ public class Endpoint : Endpoint<Request, Response>
                 .ThenInclude(x => x.Player)
             .FirstOrDefaultAsync(x => x.IsActive && x.RaceTracks.Any(x => x.TrackId == r.TrackId), ct);
 
-        List<Entities.LapDTO>? laps = null;
+        List<LapDTO>? laps = null;
         if (race == null)
         {
             laps = await _dbContext.Lap.Where(x => x.TrackId == r.TrackId).OrderByDescending(x => x.Timestamp).Take(10).ProjectToDto().ToListAsync(ct);

@@ -1,4 +1,4 @@
-namespace LeTrack.Entities;
+namespace LeTrack.DTO;
 
 public class LapDTO
 {

@@ -32,7 +32,7 @@ public class Endpoint : Endpoint<Request, Response>
             throw new Exception("Race not found");
         }
 
-        List<Entities.LapDTO>? laps = await _dbContext.Lap.Where(x => x.RaceId == r.RaceId).OrderByDescending(x => x.Timestamp).ProjectToDto().ToListAsync(ct);
+        List<LapDTO>? laps = await _dbContext.Lap.Where(x => x.RaceId == r.RaceId).OrderByDescending(x => x.Timestamp).ProjectToDto().ToListAsync(ct);
 
         // Add Lap Number
         laps = laps.Select((x, index) => { x.LapNumber = laps.Count - index; return x; }).ToList();

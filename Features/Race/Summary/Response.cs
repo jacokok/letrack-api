@@ -1,4 +1,4 @@
-using LeTrack.Entities;
+using LeTrack.DTO;
 
 namespace LeTrack.Features.Race.Summary;
 

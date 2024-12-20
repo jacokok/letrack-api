@@ -21,7 +21,9 @@ public class EventEmulator : BackgroundService
             int delayTime = new Random().Next(5000, 20000);
             await Task.Delay(delayTime, stoppingToken);
 
-            SaveEvent eventModel = new() { Timestamp = DateTime.Now.ToUniversalTime(), TrackId = 1, Id = Guid.NewGuid() };
+            int randomTrackId = new Random().Next(1, 3);
+
+            SaveEvent eventModel = new() { Timestamp = DateTime.Now.ToUniversalTime(), TrackId = randomTrackId, Id = Guid.NewGuid() };
             string payload = JsonSerializer.Serialize(eventModel);
             _mqttService.Publish("event", payload);
         }

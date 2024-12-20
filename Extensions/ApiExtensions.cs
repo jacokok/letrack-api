@@ -1,4 +1,5 @@
 using FastEndpoints.Swagger;
+using Kayord.Pos.Common.Extensions.Swagger;
 
 namespace LeTrack.Extensions;
 
@@ -13,6 +14,9 @@ public static class ApiExtensions
             {
                 s.Title = AppDomain.CurrentDomain.FriendlyName;
                 s.Version = "v1";
+                s.MarkNonNullablePropsAsRequired();
+                s.OperationProcessors.Add(new CustomOperationsProcessor());
+                s.SchemaSettings.SchemaNameGenerator = new CustomSchemaNameGenerator(false);
             };
         });
     }
