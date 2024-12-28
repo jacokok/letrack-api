@@ -1,7 +1,8 @@
 using LeTrack.Data;
 using LeTrack.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace LeTrack.Features.Race.Insert;
+namespace LeTrack.Features.Race.Update;
 
 public class Endpoint : Endpoint<Request, Entities.Race>
 {
@@ -14,7 +15,7 @@ public class Endpoint : Endpoint<Request, Entities.Race>
 
     public override void Configure()
     {
-        Post("/race");
+        Put("/race");
         AllowAnonymous();
     }
     public override async Task HandleAsync(Request req, CancellationToken ct)
@@ -29,15 +30,21 @@ public class Endpoint : Endpoint<Request, Entities.Race>
             throw new Exception("Only two lanes supported for now");
         }
 
+        Entities.Race? race = await _dbContext.Race.FirstOrDefaultAsync(x => x.Id == req.Id, ct);
+        if (race == null)
+        {
+            throw new Exception("Race not found");
+        }
+
+        var prevRaceTracks = await _dbContext.RaceTrack.Where(x => x.RaceId == req.Id).ToListAsync(ct);
+        _dbContext.RaceTrack.RemoveRange(prevRaceTracks);
+
+
         List<RaceTrack> raceTracks = req.Players.Select((x, i) => new RaceTrack { PlayerId = x, TrackId = i + 1 }).ToList();
 
-        Entities.Race race = new()
-        {
-            Name = req.Name,
-            CreatedDateTime = DateTime.UtcNow,
-            RaceTracks = raceTracks
-        };
-        await _dbContext.Race.AddAsync(race);
+        race.RaceTracks = raceTracks;
+        race.Name = req.Name;
+
         await _dbContext.SaveChangesAsync();
         await SendAsync(race);
     }

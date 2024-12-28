@@ -34,9 +34,20 @@ public class Endpoint : Endpoint<Request, Response>
 
         List<LapDTO>? laps = await _dbContext.Lap.Where(x => x.RaceId == r.RaceId).OrderByDescending(x => x.Timestamp).ProjectToDto().ToListAsync(ct);
 
-        // Add Lap Number
-        laps = laps.Select((x, index) => { x.LapNumber = laps.Count - index; return x; }).ToList();
-        response.Laps = laps;
+        foreach (var track in race.RaceTracks)
+        {
+            var trackLapsRaw = laps.Where(x => x.TrackId == track.TrackId).ToList();
+            var trackLaps = trackLapsRaw.Select((x, index) => { x.LapNumber = trackLapsRaw.Count - index; return x; }).ToList();
+            response.Tracks.Add(new Track
+            {
+                TrackId = track.TrackId,
+                Laps = trackLaps,
+                TotalLaps = trackLaps.Count,
+                FastestLap = trackLaps.Where(x => !x.IsFlagged).OrderBy(x => x.LapTime).FirstOrDefault(),
+                Player = track.Player
+            });
+        }
+
         response.TotalLaps = laps.Count;
         response.FastestLap = laps.Where(x => !x.IsFlagged).OrderBy(x => x.LapTime).FirstOrDefault();
         response.Race = race;
