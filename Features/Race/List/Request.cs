@@ -1,6 +1,7 @@
+using LeTrack.Models;
+
 namespace LeTrack.Features.Race.List;
 
-public class Request
+public class Request : QueryModel
 {
-    public bool IsActive { get; set; } = true;
 }

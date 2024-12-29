@@ -1,9 +1,11 @@
+using Kayord.Pos.Common.Extensions;
 using LeTrack.Data;
+using LeTrack.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeTrack.Features.Race.List;
 
-public class Endpoint : Endpoint<Request, List<Entities.Race>>
+public class Endpoint : Endpoint<Request, PaginatedList<Entities.Race>>
 {
     private readonly AppDbContext _dbContext;
 
@@ -23,9 +25,8 @@ public class Endpoint : Endpoint<Request, List<Entities.Race>>
         var results = await _dbContext.Race
             .Include(x => x.RaceTracks)
                 .ThenInclude(x => x.Player)
-            .Where(x => x.IsActive == req.IsActive)
             .OrderByDescending(x => x.CreatedDateTime)
-            .ToListAsync(ct);
+            .GetPagedAsync(req, ct);
 
         await SendAsync(results);
     }
