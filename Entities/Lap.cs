@@ -9,5 +9,6 @@ public class Lap
     public TimeSpan? LapTime { get; set; }
     public TimeSpan? LapTimeDifference { get; set; }
     public bool IsFlagged { get; set; }
+    public string? FlagReason { get; set; }
     public int RaceId { get; set; }
 }

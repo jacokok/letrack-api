@@ -23,23 +23,53 @@ public class LapEventHandler : IEventHandler<LapEvent>
             throw new Exception("Dependency injection failed");
         }
 
-        var lastEvent = await _dbContext.Event
-            .Where(x => x.TrackId == eventModel.TrackId && x.Timestamp < eventModel.Timestamp)
+        var race = await _dbContext.Race.FirstOrDefaultAsync(x => x.IsActive && x.RaceTracks.Any(x => x.TrackId == eventModel.TrackId), ct);
+
+
+        TimeSpan? lapTimeSpan = null;
+        TimeSpan? lapDifference = null;
+        bool isFlagged = false;
+        string? flagReason = null;
+
+        int raceId = race?.Id ?? 0;
+
+        var lastLap = await _dbContext.Lap
+            .Where(x => x.TrackId == eventModel.TrackId && x.Timestamp < eventModel.Timestamp && x.RaceId == raceId)
             .OrderByDescending(x => x.Timestamp)
             .FirstOrDefaultAsync(ct);
 
-        var race = await _dbContext.Race.FirstOrDefaultAsync(x => x.IsActive && x.RaceTracks.Any(x => x.TrackId == eventModel.TrackId), ct);
-
-        TimeSpan? lapTimeSpan = (lastEvent != null) ? eventModel.Timestamp - lastEvent.Timestamp : null;
-        TimeSpan? lapDifference = null;
-
-        if (lastEvent != null)
+        Guid? lastLapId = lastLap?.Id;
+        if (lastLap != null)
         {
-            var lastLap = await _dbContext.Lap.FirstOrDefaultAsync(x => x.Id == lastEvent.Id);
-            if (lastLap != null)
+
+            lapTimeSpan = eventModel.Timestamp - lastLap.Timestamp;
+            if (race?.RestartDateTime != null)
             {
-                lapDifference = lastLap.LapTime - lapTimeSpan;
+                if (race.RestartDateTime > lastLap.Timestamp)
+                {
+                    lapTimeSpan = eventModel.Timestamp - race.RestartDateTime;
+                    isFlagged = true;
+                    flagReason = "First lap or race restart";
+
+                }
             }
+
+            lapDifference = lastLap.LapTime - lapTimeSpan;
+        }
+        else
+        {
+            if (race != null)
+            {
+                lapTimeSpan = eventModel.Timestamp - race.RestartDateTime;
+                isFlagged = true;
+                flagReason = "First lap or race restart";
+            }
+        }
+
+        if (lapTimeSpan == null)
+        {
+            isFlagged = true;
+            flagReason = "No time span";
         }
 
         // TODO: Flag lap if something is fishy
@@ -49,11 +79,12 @@ public class LapEventHandler : IEventHandler<LapEvent>
             Id = eventModel.Id,
             TrackId = eventModel.TrackId,
             Timestamp = eventModel.Timestamp,
-            LastLapId = lastEvent?.Id,
+            LastLapId = lastLapId,
             LapTime = lapTimeSpan,
             LapTimeDifference = lapDifference,
-            IsFlagged = lapTimeSpan == null,
-            RaceId = race?.Id ?? 0
+            IsFlagged = isFlagged,
+            RaceId = race?.Id ?? 0,
+            FlagReason = flagReason
         };
         await _dbContext.Lap.AddAsync(lap);
         await _dbContext.SaveChangesAsync(ct);
