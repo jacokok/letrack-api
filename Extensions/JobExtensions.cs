@@ -14,7 +14,7 @@ public static class JobExtensions
             {
                 t.WithIdentity("TriggerJob", "Trigger");
                 t.StartAt(DateBuilder.EvenSecondDate(DateTimeOffset.UtcNow.AddSeconds(30)));
-                t.WithSimpleSchedule(s => s.WithIntervalInMinutes(2).RepeatForever());
+                t.WithSimpleSchedule(s => s.WithIntervalInSeconds(53).RepeatForever());
             });
         });
 

@@ -1,5 +1,7 @@
 using LeTrack.Data;
 using LeTrack.Entities;
+using LeTrack.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeTrack.Features.Events;
@@ -8,9 +10,12 @@ public class LapEventHandler : IEventHandler<LapEvent>
 {
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public LapEventHandler(IServiceScopeFactory scopeFactory)
+    private readonly IHubContext<LeTrackHub, ILeTrackHub> _hub;
+
+    public LapEventHandler(IServiceScopeFactory scopeFactory, IHubContext<LeTrackHub, ILeTrackHub> hub)
     {
         _scopeFactory = scopeFactory;
+        _hub = hub;
     }
 
     public async Task HandleAsync(LapEvent eventModel, CancellationToken ct)
@@ -71,8 +76,11 @@ public class LapEventHandler : IEventHandler<LapEvent>
             isFlagged = true;
             flagReason = "No time span";
         }
-
-        // TODO: Flag lap if something is fishy
+        if (lapTimeSpan < TimeSpan.FromSeconds(6))
+        {
+            isFlagged = true;
+            flagReason = "Suspicious lap time";
+        }
 
         var lap = new Lap
         {
@@ -88,6 +96,35 @@ public class LapEventHandler : IEventHandler<LapEvent>
         };
         await _dbContext.Lap.AddAsync(lap);
         await _dbContext.SaveChangesAsync(ct);
+
+        // End Races if time or lap limit is reached
+        if (race != null)
+        {
+            if (race.EndLapCount > 0)
+            {
+                // Check count and possibly end race
+                var laps = await _dbContext.Lap.Where(x => x.RaceId == race.Id).ToListAsync(ct);
+                // Lap counts per trackId
+                var lapCounts = laps.GroupBy(x => x.TrackId).Select(x => x.Count()).ToList();
+
+                foreach (var lapCount in lapCounts)
+                {
+                    if (lapCount >= race.EndLapCount)
+                    {
+                        race.IsActive = false;
+                        await _hub.Clients.All.RaceComplete(race.Id);
+                        await _dbContext.SaveChangesAsync(ct);
+                        break;
+                    }
+                }
+            }
+            if (race.EndDateTime != null && race.EndDateTime <= DateTime.UtcNow)
+            {
+                race.IsActive = false;
+                await _hub.Clients.All.RaceComplete(race.Id);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+        }
         return;
     }
 }

@@ -38,10 +38,18 @@ public class Endpoint : Endpoint<Request, Entities.Race>
         {
             race.EndDateTime = now + TimeSpan.FromMinutes(req.Duration);
         }
+        else
+        {
+            race.EndDateTime = null;
+        }
 
         if (req.Laps != 0)
         {
             race.EndLapCount = req.Laps;
+        }
+        else
+        {
+            race.EndLapCount = null;
         }
 
         race.TimeRemaining = null;
