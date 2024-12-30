@@ -71,12 +71,12 @@ public class LapEventHandler : IEventHandler<LapEvent>
             }
         }
 
-        if (lapTimeSpan == null)
+        if (!isFlagged && lapTimeSpan == null)
         {
             isFlagged = true;
             flagReason = "No time span";
         }
-        if (lapTimeSpan < TimeSpan.FromSeconds(6))
+        if (!isFlagged && lapTimeSpan < TimeSpan.FromSeconds(6))
         {
             isFlagged = true;
             flagReason = "Suspicious lap time";
